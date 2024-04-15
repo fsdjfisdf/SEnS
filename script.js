@@ -1050,3 +1050,4 @@ function updateTitleBasedOnSelection() {
 
     document.getElementById('workTitle').value = title; // 최종 타이틀 설정
 }
+
