@@ -24,10 +24,6 @@ function saveWorkLog(workLog) {
     });
 }
 
-// 페이지 로딩 시 데이터 조회
-document.addEventListener('DOMContentLoaded', function() {
-    fetchWorkLogs();
-});
 
 // 데이터 조회 예시
 function fetchWorkLogs() {
