@@ -44,6 +44,30 @@ document.addEventListener('DOMContentLoaded', function() {
     calculateTodayWorkCount(); // 페이지 로드 시 오늘의 작업 건수 계산
 });
 
+document.addEventListener('DOMContentLoaded', function() {
+    var loginButton = document.getElementById('loginButton');
+    if (loginButton) {
+        loginButton.addEventListener('click', function(event) {
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+            const users = {
+                "admin": {"password": "password123", "level": "1", "skill": "10%", "name": "admin"},
+                "320020": {"password": "320020", "level": "4", "skill": "60%", "name": "정현우"}
+            };
+
+            if (users[username] && users[username].password === password) {
+                isLoggedIn = true;
+                loggedInUser = users[username]; // 로그인된 사용자의 정보를 전역 변수에 저장
+                updateLoggedInUI(username); // 로그인된 사용자의 UI를 업데이트하는 함수 호출
+                openTab(event, 'LoggedInEng');  // 'event' 전달
+                console.log('Logged in successfully');
+            } else {
+                alert('Invalid username or password.');
+            }
+        });
+    }
+});
+
 // 로그인 버튼 클릭 이벤트 수정
 document.getElementById('loginButton').addEventListener('click', function(event) {
     const username = document.getElementById('username').value;
