@@ -1,3 +1,34 @@
+// Firebase 라이브러리를 추가
+<script src="https://www.gstatic.com/firebasejs/7.14.0/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/7.14.0/firebase-database.js"></script>
+
+var firebaseConfig = {
+    apiKey: "YOUR_API_KEY",
+    authDomain: "YOUR_AUTH_DOMAIN",
+    databaseURL: "YOUR_DATABASE_URL",
+    projectId: "YOUR_PROJECT_ID",
+    storageBucket: "YOUR_STORAGE_BUCKET",
+    messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
+    appId: "YOUR_APP_ID"
+};
+
+// Firebase 초기화
+firebase.initializeApp(firebaseConfig);
+
+// 데이터 저장 예시
+function saveWorkLog(workLog) {
+    firebase.database().ref('workLogs/').push(workLog);
+}
+
+// 데이터 조회 예시
+function fetchWorkLogs() {
+    firebase.database().ref('workLogs/').on('value', function(snapshot) {
+        snapshot.forEach(function(childSnapshot) {
+            var log = childSnapshot.val();
+            console.log(log);
+        });
+    });
+}
 
 // 로그인 상태를 추적하는 변수
 var isLoggedIn = false;
