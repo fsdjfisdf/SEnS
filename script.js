@@ -17,8 +17,17 @@ firebase.initializeApp(firebaseConfig);
 
 // 데이터 저장 예시
 function saveWorkLog(workLog) {
-    firebase.database().ref('workLogs/').push(workLog);
+    firebase.database().ref('workLogs/').push(workLog).then(() => {
+        console.log('Work log saved successfully!');
+    }).catch(error => {
+        console.error('Error saving work log:', error);
+    });
 }
+
+// 페이지 로딩 시 데이터 조회
+document.addEventListener('DOMContentLoaded', function() {
+    fetchWorkLogs();
+});
 
 // 데이터 조회 예시
 function fetchWorkLogs() {
