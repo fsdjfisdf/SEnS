@@ -1,39 +1,3 @@
-// Firebase 라이브러리를 추가
-<script src="https://www.gstatic.com/firebasejs/7.14.0/firebase-app.js"></script>
-<script src="https://www.gstatic.com/firebasejs/7.14.0/firebase-database.js"></script>
-
-var firebaseConfig = {
-    apiKey: "YOUR_API_KEY",
-    authDomain: "YOUR_AUTH_DOMAIN",
-    databaseURL: "YOUR_DATABASE_URL",
-    projectId: "YOUR_PROJECT_ID",
-    storageBucket: "YOUR_STORAGE_BUCKET",
-    messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
-    appId: "YOUR_APP_ID"
-};
-
-// Firebase 초기화
-firebase.initializeApp(firebaseConfig);
-
-// 데이터 저장 예시
-function saveWorkLog(workLog) {
-    firebase.database().ref('workLogs/').push(workLog).then(() => {
-        console.log('Work log saved successfully!');
-    }).catch(error => {
-        console.error('Error saving work log:', error);
-    });
-}
-
-
-// 데이터 조회 예시
-function fetchWorkLogs() {
-    firebase.database().ref('workLogs/').on('value', function(snapshot) {
-        snapshot.forEach(function(childSnapshot) {
-            var log = childSnapshot.val();
-            console.log(log);
-        });
-    });
-}
 
 // 로그인 상태를 추적하는 변수
 var isLoggedIn = false;
@@ -42,30 +6,6 @@ var isLoggedIn = false;
 document.addEventListener('DOMContentLoaded', function() {
     calculateTodayWorkHours(); // 페이지 로드 시 오늘의 작업 시간 계산
     calculateTodayWorkCount(); // 페이지 로드 시 오늘의 작업 건수 계산
-});
-
-document.addEventListener('DOMContentLoaded', function() {
-    var loginButton = document.getElementById('loginButton');
-    if (loginButton) {
-        loginButton.addEventListener('click', function(event) {
-            const username = document.getElementById('username').value;
-            const password = document.getElementById('password').value;
-            const users = {
-                "admin": {"password": "password123", "level": "1", "skill": "10%", "name": "admin"},
-                "320020": {"password": "320020", "level": "4", "skill": "60%", "name": "정현우"}
-            };
-
-            if (users[username] && users[username].password === password) {
-                isLoggedIn = true;
-                loggedInUser = users[username]; // 로그인된 사용자의 정보를 전역 변수에 저장
-                updateLoggedInUI(username); // 로그인된 사용자의 UI를 업데이트하는 함수 호출
-                openTab(event, 'LoggedInEng');  // 'event' 전달
-                console.log('Logged in successfully');
-            } else {
-                alert('Invalid username or password.');
-            }
-        });
-    }
 });
 
 // 로그인 버튼 클릭 이벤트 수정
@@ -1110,4 +1050,3 @@ function updateTitleBasedOnSelection() {
 
     document.getElementById('workTitle').value = title; // 최종 타이틀 설정
 }
-
