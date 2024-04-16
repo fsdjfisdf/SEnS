@@ -226,12 +226,15 @@ document.addEventListener('DOMContentLoaded', function() {
 
 
 document.getElementById('saveButton').addEventListener('click', async function() {
+    // 입력 필드에서 값 가져오기
     const workDate = document.getElementById('workDate').value;
     const workStartTime = document.getElementById('workStartTime').value;
     const workEndTime = document.getElementById('workEndTime').value;
+    // 작업자 이름과 역할을 수집합니다.
     const workerNames = Array.from(document.querySelectorAll('[name="worker[]"]')).map(input => input.value.trim());
     const workerRoles = Array.from(document.querySelectorAll('[name="workerRole[]"]')).map(select => select.value);
 
+    // 수집된 데이터를 바탕으로 workers 배열을 생성합니다.
     const workers = workerNames.map((name, index) => ({ name, role: workerRoles[index] }));
     const workTitle = document.getElementById('workTitle').value;
     const repPart = document.getElementById('repPart').value;
@@ -241,7 +244,7 @@ document.getElementById('saveButton').addEventListener('click', async function()
     const tsGuide = document.getElementById('tsGuide').value;
     const warranty = document.getElementById('warranty').value;
     const workSite = document.getElementById('workSite').value;
-    const workLine = document.getElementById('workLine').value;
+    const workLine = document.getElementById('workLine').value; // LINE 정보 추가
     const workEquipmentType = document.getElementById('workEquipmentType').value;
     const equipmentName = document.getElementById('equipmentName').value;
     const workStatus = document.getElementById('workStatus').value;
@@ -254,31 +257,39 @@ document.getElementById('saveButton').addEventListener('click', async function()
     const actionValues = Array.from(document.querySelectorAll('[name="action[]"]')).map(input => input.value);
     const resultValues = Array.from(document.querySelectorAll('[name="result[]"]')).map(input => input.value);
 
-    const workLog = {
+        // 모든 필드의 입력 여부 확인
+    if (!workDate || !workStartTime || !workEndTime || workerNames.includes("") || workerRoles.includes("") || !workTitle 
+    || !workCause || actionValues.includes("") || resultValues.includes("") || !workGroup || !workSite || !workEquipmentType 
+    || !equipmentName || !workStatus || !noneTime || !moveTime || !workType || !workType2 || !warranty || !transferItem || !sop || !tsGuide) {
+        alert('모든 필드를 입력해주세요.');
+        return;
+    }
+    
+    const newWorkLog = {
         date: workDate,
         startTime: workStartTime,
         endTime: workEndTime,
-        workers,
+        workers: JSON.stringify(workers), // workers 배열을 문자열로 변환하여 저장
         title: workTitle,
-        repPart,
+        repPart: repPart,
         cause: workCause,
         group: workGroup,
-        sop,
-        tsGuide,
-        warranty,
+        sop: sop,
+        tsGuide: tsGuide,
+        warranty: warranty,
         site: workSite,
-        line: workLine,
         equipmentType: workEquipmentType,
-        eqName: equipmentName,
-        status: workStatus,
-        noneTime,
-        moveTime,
-        workType,
-        workType2,
-        additionalWorkType,
-        transferItem,
-        actions: actionValues.join("\n"),
-        results: resultValues.join("\n")
+        workType: workType,
+        workType2: workType2,
+        transferItem: transferItem,
+        eqName : equipmentName,
+        status : workStatus,
+        noneTime : noneTime,
+        moveTime : moveTime,
+        additionalWorkType: additionalWorkType,
+        actions: actionValues.join("\n"), // 'action' 필드 값들을 개행 문자로 구분하여 하나의 문자열로 합침
+        results: resultValues.join("\n"), // 'result' 필드 값들을 개행 문자로 구분하여 하나의 문자열로 합침
+        line : workLine,
     };
 
     // Fetch API를 사용하여 서버에 데이터를 보냅니다.
