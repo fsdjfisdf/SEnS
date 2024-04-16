@@ -91,6 +91,7 @@ document.addEventListener('DOMContentLoaded', function() {
 document.getElementById('loginButton').addEventListener('click', function(event) {
     const username = document.getElementById('username').value;
     const password = document.getElementById('password').value;
+    console.log(username, password); // 입력 값 확인
     const users = {
         "admin": {"password": "password123", "level": "1", "skill": "10%", "name": "admin"},
         "320020": {"password": "320020", "level": "4", "skill": "60%", "name": "정현우"}
@@ -104,6 +105,10 @@ document.getElementById('loginButton').addEventListener('click', function(event)
     } else {
         alert('Invalid username or password.');
     }
+});
+app.post('/login', (req, res) => {
+    console.log(req.body); // 요청 받은 데이터 확인
+    // 인증 로직...
 });
 
 function updateLoggedInUI(username) {
