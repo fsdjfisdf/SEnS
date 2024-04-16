@@ -225,19 +225,13 @@ document.addEventListener('DOMContentLoaded', function() {
 
 
 
-document.getElementById('saveButton').addEventListener('click', function() {
-    // 먼저, 로컬 스토리지에서 기존의 작업 로그를 불러옵니다.
-    let workLogs = JSON.parse(localStorage.getItem('workLogs')) || [];
-
-    // 입력 필드에서 값 가져오기
+document.getElementById('saveButton').addEventListener('click', async function() {
     const workDate = document.getElementById('workDate').value;
     const workStartTime = document.getElementById('workStartTime').value;
     const workEndTime = document.getElementById('workEndTime').value;
-    // 작업자 이름과 역할을 수집합니다.
     const workerNames = Array.from(document.querySelectorAll('[name="worker[]"]')).map(input => input.value.trim());
     const workerRoles = Array.from(document.querySelectorAll('[name="workerRole[]"]')).map(select => select.value);
 
-    // 수집된 데이터를 바탕으로 workers 배열을 생성합니다.
     const workers = workerNames.map((name, index) => ({ name, role: workerRoles[index] }));
     const workTitle = document.getElementById('workTitle').value;
     const repPart = document.getElementById('repPart').value;
@@ -247,7 +241,7 @@ document.getElementById('saveButton').addEventListener('click', function() {
     const tsGuide = document.getElementById('tsGuide').value;
     const warranty = document.getElementById('warranty').value;
     const workSite = document.getElementById('workSite').value;
-    const workLine = document.getElementById('workLine').value; // LINE 정보 추가
+    const workLine = document.getElementById('workLine').value;
     const workEquipmentType = document.getElementById('workEquipmentType').value;
     const equipmentName = document.getElementById('equipmentName').value;
     const workStatus = document.getElementById('workStatus').value;
@@ -260,51 +254,53 @@ document.getElementById('saveButton').addEventListener('click', function() {
     const actionValues = Array.from(document.querySelectorAll('[name="action[]"]')).map(input => input.value);
     const resultValues = Array.from(document.querySelectorAll('[name="result[]"]')).map(input => input.value);
 
-    // 모든 필드의 입력 여부 확인
-    if (!workDate || !workStartTime || !workEndTime || workerNames.includes("") || workerRoles.includes("") || !workTitle 
-    || !workCause || actionValues.includes("") || resultValues.includes("") || !workGroup || !workSite || !workEquipmentType 
-    || !equipmentName || !workStatus || !noneTime || !moveTime || !workType || !workType2 || !warranty || !transferItem || !sop || !tsGuide) {
-        alert('모든 필드를 입력해주세요.');
-        return;
-    }
-
-    // 새로운 작업 로그 객체 생성
-    const newWorkLog = {
+    const workLog = {
         date: workDate,
         startTime: workStartTime,
         endTime: workEndTime,
-        workers: JSON.stringify(workers), // workers 배열을 문자열로 변환하여 저장
+        workers,
         title: workTitle,
-        repPart: repPart,
+        repPart,
         cause: workCause,
         group: workGroup,
-        sop: sop,
-        tsGuide: tsGuide,
-        warranty: warranty,
+        sop,
+        tsGuide,
+        warranty,
         site: workSite,
+        line: workLine,
         equipmentType: workEquipmentType,
-        workType: workType,
-        workType2: workType2,
-        transferItem: transferItem,
-        eqName : equipmentName,
-        status : workStatus,
-        noneTime : noneTime,
-        moveTime : moveTime,
-        additionalWorkType: additionalWorkType,
-        actions: actionValues.join("\n"), // 'action' 필드 값들을 개행 문자로 구분하여 하나의 문자열로 합침
-        results: resultValues.join("\n"), // 'result' 필드 값들을 개행 문자로 구분하여 하나의 문자열로 합침
-        line : workLine,
+        eqName: equipmentName,
+        status: workStatus,
+        noneTime,
+        moveTime,
+        workType,
+        workType2,
+        additionalWorkType,
+        transferItem,
+        actions: actionValues.join("\n"),
+        results: resultValues.join("\n")
     };
 
-    // 새로운 작업 로그를 배열에 추가하고, 로컬 스토리지에 저장
-    workLogs.push(newWorkLog);
-    localStorage.setItem('workLogs', JSON.stringify(workLogs));
+    // Fetch API를 사용하여 서버에 데이터를 보냅니다.
+    try {
+        const response = await fetch('/worklogs', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(workLog)
+        });
 
-    alert('작업 이력이 저장되었습니다.');
-
-    // 작업 이력을 화면에 다시 표시하는 함수를 호출 (이 함수를 별도로 정의해야 함)
-    displayWorkLogs();
+        if (!response.ok) throw new Error('Something went wrong');
+        const responseData = await response.json();
+        alert('작업 이력이 저장되었습니다.');
+        displayWorkLogs(); // 새로 저장된 데이터로 화면 업데이트
+    } catch (error) {
+        console.error('Failed to save the work log: ', error);
+        alert('작업 이력 저장에 실패했습니다.');
+    }
 });
+
 
 document.getElementById('workGroup').addEventListener('change', updateTransferItems);
 
