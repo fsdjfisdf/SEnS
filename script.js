@@ -299,7 +299,7 @@ document.getElementById('saveButton').addEventListener('click', async function()
             headers: {
                 'Content-Type': 'application/json'
             },
-            body: JSON.stringify(newWorkLog)
+            body: JSON.stringify(workLog)
         });
 
         if (!response.ok) throw new Error('Something went wrong');
