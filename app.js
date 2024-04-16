@@ -7,15 +7,18 @@ mongoose.connect('mongodb://localhost:27017/yourDatabase', {
 const mongoose = require('mongoose');
 
 const workLogSchema = new mongoose.Schema({
-    title: String,
-    date: Date,
-    startTime: String,
-    endTime: String,
-    workers: [{ name: String, role: String }],
-    actions: String,
-    results: String,
-    // 추가 필드
+    title: { type: String, required: true },
+    date: { type: Date, required: true },
+    startTime: { type: String, required: true },
+    endTime: { type: String, required: true },
+    workers: [{
+        name: { type: String, required: true },
+        role: { type: String, required: true }
+    }],
+    actions: { type: String, required: true },
+    results: { type: String, required: true }
 });
+module.exports = mongoose.model('WorkLog', workLogSchema);
 
 const WorkLog = mongoose.model('WorkLog', workLogSchema);
 
@@ -56,3 +59,4 @@ document.getElementById('fetchLogsButton').addEventListener('click', async () =>
     const logs = await response.json();
     console.log(logs);
 });
+
