@@ -1,82 +1,3 @@
-const express = require('express');
-const app = express();
-const bodyParser = require('body-parser');
-const cors = require('cors');
-
-app.use(cors());
-app.use(bodyParser.json());
-
-app.listen(3000, () => {
-    console.log('Server is running on http://localhost:3000');
-});
-
-const mongoose = require('mongoose');
-mongoose.connect('mongodb://localhost/worklog', {
-    useNewUrlParser: true,
-    useUnifiedTopology: true
-});
-
-const db = mongoose.connection;
-db.on('error', console.error.bind(console, 'connection error:'));
-db.once('open', function() {
-    console.log("We are connected to the database!");
-});
-
-const workLogSchema = new mongoose.Schema({
-    title: String,
-    workers: [{ name: String, role: String }],
-    actions: String,
-    results: String,
-    date: Date,
-    startTime: String,
-    endTime: String
-});
-
-const WorkLog = mongoose.model('WorkLog', workLogSchema);
-
-// 작업 이력 가져오기
-app.get('/worklogs', async (req, res) => {
-    try {
-        const worklogs = await WorkLog.find();
-        res.json(worklogs);
-    } catch (error) {
-        res.status(500).json({ message: error.message });
-    }
-});
-
-// 작업 이력 저장하기
-app.post('/worklogs', async (req, res) => {
-    const worklog = new WorkLog(req.body);
-    try {
-        const newWorkLog = await worklog.save();
-        res.status(201).json(newWorkLog);
-    } catch (error) {
-        res.status(400).json({ message: error.message });
-    }
-});
-
-// 데이터 불러오기
-fetch('http://localhost:3000/worklogs')
-    .then(response => response.json())
-    .then(data => console.log(data));
-
-// 데이터 저장하기
-fetch('http://localhost:3000/worklogs', {
-    method: 'POST',
-    headers: {
-        'Content-Type': 'application/json',
-    },
-    body: JSON.stringify(workLogData)
-}).then(response => response.json())
-  .then(data => console.log('Success:', data))
-  .catch((error) => console.error('Error:', error));
-
-
-
-
-
-
-
 
 // 로그인 상태를 추적하는 변수
 var isLoggedIn = false;
@@ -91,7 +12,6 @@ document.addEventListener('DOMContentLoaded', function() {
 document.getElementById('loginButton').addEventListener('click', function(event) {
     const username = document.getElementById('username').value;
     const password = document.getElementById('password').value;
-    console.log(username, password); // 입력 값 확인
     const users = {
         "admin": {"password": "password123", "level": "1", "skill": "10%", "name": "admin"},
         "320020": {"password": "320020", "level": "4", "skill": "60%", "name": "정현우"}
@@ -105,10 +25,6 @@ document.getElementById('loginButton').addEventListener('click', function(event)
     } else {
         alert('Invalid username or password.');
     }
-});
-app.post('/login', (req, res) => {
-    console.log(req.body); // 요청 받은 데이터 확인
-    // 인증 로직...
 });
 
 function updateLoggedInUI(username) {
