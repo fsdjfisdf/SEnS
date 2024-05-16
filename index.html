@@ -1,305 +1,83 @@
-
 <!DOCTYPE html>
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SEnS Working history System</title>
-    <link rel="stylesheet" href="style.css">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.16.9/xlsx.full.min.js"></script>
+    <title>작업 로그</title>
+    <script>
+        async function submitLog() {
+            const task_name = document.getElementById('task_name').value;
+            const worker = document.getElementById('worker').value;
+            const task_result = document.getElementById('task_result').value;
+            const task_cause = document.getElementById('task_cause').value;
+
+            try {
+                const response = await fetch('/log', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ task_name, worker, task_result, task_cause })
+                });
+
+                if (response.ok) {
+                    alert('로그가 성공적으로 제출되었습니다.');
+                    document.getElementById('logForm').reset();
+                    loadLogs();
+                } else {
+                    const errorData = await response.json();
+                    alert(`로그 제출 실패: ${errorData.message}`);
+                }
+            } catch (error) {
+                alert('로그 제출 중 오류가 발생했습니다.');
+            }
+        }
+
+        async function loadLogs() {
+            try {
+                const response = await fetch('/logs');
+                if (!response.ok) {
+                    throw new Error('로그 불러오기 실패');
+                }
+                const logs = await response.json();
+                const logsContainer = document.getElementById('logs');
+                logsContainer.innerHTML = '';
+
+                logs.forEach(log => {
+                    const logItem = document.createElement('div');
+                    logItem.innerHTML = `
+                        <strong>작업:</strong> ${log.task_name}<br>
+                        <strong>작업자:</strong> ${log.worker}<br>
+                        <strong>결과:</strong> ${log.task_result}<br>
+                        <strong>원인:</strong> ${log.task_cause}<br>
+                        <strong>시간:</strong> ${log.task_time}<br><br>
+                    `;
+                    logsContainer.appendChild(logItem);
+                });
+            } catch (error) {
+                alert('로그를 불러오는 중 오류가 발생했습니다.');
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            loadLogs();
+        });
+    </script>
 </head>
 <body>
-    <!-- 탭 버튼 -->
-    <div class="tab">
-        <button class="tablinks" onclick="openTab(event, 'Login')" >Login</button>
-        <button class="tablinks" onclick="openTab(event, 'LoggedInEng')">Eng'r Information</button>
-        <button class="tablinks" onclick="openTab(event, 'WorkingAnalysis')">Working Analysis</button>
-        <button class="tablinks" onclick="openTab(event, 'History')">Write your work</button>
-        <button class="tablinks" onclick="openTab(event, 'HistoryLog')">Work history</button>
-    </div>
-
-    <!-- 로그인 탭 컨텐츠 -->
-    <div id="Login" class="tabcontent">
-        <div id="loginContainer">
-            <h1>SEnS Working System</h1>
-            <form id="loginForm">
-                <div><label>Name<input type="text" id="username" placeholder="아이디를 입력하세요."></label></div>
-                <div><label>Password<input type="password" id="password" placeholder="비밀번호를 입력하세요."></label></div>
-                <button type="button" id="loginButton">Login</button>
-            </form>
-            <p class="creator-signature">This system is developed by Jung Hyunwoo at SEnS</p>
-        </div>
-        </div>
-    </div>
-
-    <!-- Logged in Eng'r 탭 컨텐츠 -->
-    <div id="LoggedInEng" class="tabcontent">
-        <div id="loggedInUserInfo">
-            <h3>Eng'r Information</h3>
-            <div class="user-detail">
-                <span id="loggedInUserName"></span>
-            </div>
-            <div class="user-detail">
-                <span id="loggedInUserLevel"></span>
-            </div>
-            <div class="user-detail">
-                <span id="loggedInUserSkill"></span>
-            </div>
-            <div id="userSkillGraphContainer">
-                <div id="userSkillGraph"></div>
-            </div>
-            <br>
-            <h3>Search user name</h3>
-            <div id="userSearchPanel" style="display: none;">
-                <input type="text" id="searchInput" placeholder="Eng'r 이름을 입력하세요.">
-                <button onclick="searchUser()">Search</button>
-                <div id="searchResults" class="search-results"></div>
-            </div>
-        </div>
-    </div>
-
-<div id="WorkingAnalysis" class="tabcontent">
-    <h3>Working Analysis</h3>
-    <label>시작 날짜<input type="date" id="startDatePickerForWork"></label>
-    <label>종료 날짜<input type="date" id="endDatePickerForWork"></label>
-        <button onclick="calculateWorkDetailsInRange()">계산</button>
-    <div id="todayWorkDetails">
-        <h3>TODAY</h3>
-        <p id="todayWorkHours">WORKING TIME: 0 hrs</p>
-        <p id="todayWorkCount">WORKING ORDER: 0 ea</p>
-    </div>
-    <div id="dateRangeWorkDetails">
-        <h3>SELECT</h3>
-        <p>WORKING TIME: <span id="totalHours">0 hrs</span></p>
-        <p>SET UP TIME: <span id="setupHoursRange">0 hrs</span></p>
-        <p>RELOCATION TIME: <span id="relocationHoursRange">0 hrs</span></p>
-        <p>MAINTENANCE TIME: <span id="maintenanceHoursRange">0 hrs</span></p>
-        <br>
-        <p>WORKING ORDER: <span id="totalCount">0 ea</span></p>
-        <p>SET UP ORDER: <span id="setupCountRange">0 ea</span></p>
-        <p>RELOCATION ORDER: <span id="relocationCountRange">0 ea</span></p>
-        <p>MAINTENANCE ORDER: <span id="maintenanceCountRange">0 ea</span></p>
-    </div>
-    <br>
-    <div id="userWorkDetails"></div>
-</div>
-
-
-
-
-
-    <!-- History 탭 컨텐츠 -->
-    <div id="History" class="tabcontent">
-        <h2>Write History</h2>
-        <form id="workLogForm">
-            <!-- Group Information -->
-            <div class="input-group"> 
-                <label>GROUP
-                    <select id="workGroup">
-                        <option value="SELECT">SELECT</option>
-                        <option value="PEE1">PEE1</option>
-                        <option value="PEE2">PEE2</option>
-                        <option value="PEE3">PEE3</option>
-                    </select>
-                </label>
-                <label>SITE
-                    <select id="workSite">
-                        <option value="SELECT">SELECT</option>
-                        <option value="PT">PT</option>
-                        <option value="HS">HS</option>
-                        <option value="IC">IC</option>
-                        <option value="CJ">CJ</option>
-                        <option value="PSKH">PSKH</option>
-                    </select>
-                </label>
-                <label>LINE
-                    <select id="workLine">
-                        <option value="SELECT">SELECT</option>
-                        <!-- JavaScript를 통해 동적으로 옵션 추가 -->
-                    </select>
-                </label>
-            </div>
-    
-            <!-- Equipment Information -->
-            <div class="input-group">
-                <label>EQ
-                    <select id="workEquipmentType">
-                        <option value="SELECT">SELECT</option>
-                        <option value="SUPRA">SUPRA</option>
-                        <option value="ZEDIUS">ZEDIUS</option>
-                        <option value="INTEGER">INTEGER</option>
-                        <option value="PRECIA">PRECIA</option>
-                        <option value="ECOLITE">ECOLITE</option>
-                        <option value="JENEVA">JENEVA</option>
-                    </select>
-                </label>
-                <label>EQ Name <input type="text" id="equipmentName"></label>
-            </div>
-    
-            <!-- Work Type Information -->
-            <div class="input-group">
-                <div><label>Work Type
-                    <select id="workType">
-                        <option value="SELECT">SELECT</option>
-                        <option value="SET UP">SET UP</option>
-                        <option value="RELOCATION">RELOCATION</option>
-                        <option value="MAINT">MAINT</option>
-                    </select>
-                </label></div>
-                <!-- Work Type에 따라 보여질 새로운 Select Box -->
-                <div id="additionalOptions" class="additionalOption" style="display:none;">
-                    <label>SET UP ITEM
-                        <select id="additionalWorkType">
-                            <option value="SELECT">SELECT</option>
-                            <option value="INSTALLATION PREPARATION">INSTALLATION PREPARATION</option>
-                            <option value="FAB IN">FAB IN</option>
-                            <option value="DOCKING">DOCKING</option>
-                            <option value="CABLE HOOK UP">CABLE HOOK UP</option>
-                            <option value="PUMP CABLE HOOK UP">PUMP CABLE HOOK UP</option>
-                            <option value="CABLE HOOK UP : SILICON 마감">CABLE HOOK UP : SILICON 마감</option>
-                            <option value="POWER TURN ON">POWER TURN ON</option>
-                            <option value="UTILITY TURN ON">UTILITY TURN ON</option>
-                            <option value="GAS TURN ON">GAS TURN ON</option>
-                            <option value="TEACHING LEVELING">TEACHING LEVELING</option>
-                            <option value="TEACHING">TEACHING</option>
-                            <option value="PART INSTALLATION">PART INSTALLATION</option>
-                            <option value="LEAK CHECK">LEAK CHECK</option>
-                            <option value="TTTM">TTTM</option>
-                            <option value="CUSTOMER CERTIFICATION 중간인증 준비">CUSTOMER CERTIFICATION 중간인증 준비</option>
-                            <option value="CUSTOMER CERTIFICATION(PIO 장착)">CUSTOMER CERTIFICATION(PIO 장착)</option>
-                            <option value="CUSTOMER CERTIFICATION 사전중간인증">CUSTOMER CERTIFICATION 사전중간인증</option>
-                            <option value="CUSTOMER CERTIFICATION 중간인증">CUSTOMER CERTIFICATION 중간인증</option>
-                            <option value="PROCESS CONFIRM">PROCESS CONFIRM</option>
-                            <option value="MAINTENANCE">MAINTENANCE</option>
-                        </select>
-                    </label>
-                </div>
-                <div id="transferItemContainer" class="additionalOption" style="display:none;">
-                    <label>TRANSFER ITEM
-                        <select id="transferItem">
-                            <option value="SELECT">SELECT</option>
-                            <!-- 옵션들 생략 -->
-                        </select>
-                    </label>
-                </div>
-
-                
-                <label>Work Type2
-                    <select id="workType2">
-                        <option value="SELECT">SELECT</option>
-                        <option value="REP">REP</option>
-                        <option value="ADJ">ADJ</option>
-                        <option value="MON">MON</option>
-                    </select>
-                </label>
-                <label>Warranty
-                    <select id="warranty">
-                        <option value="SELECT">SELECT</option>
-                        <option value="WI">WI</option>
-                        <option value="WO">WO</option>
-                    </select>
-                </label>
-            </div>
-    
-            <!-- Time Information -->
-            <div class="input-group">
-                <label>Work Start date <input type="date" id="workDate"></label>
-                <label>Work Start time <input type="time" id="workStartTime"></label>
-                <label>Work End time <input type="time" id="workEndTime"></label>
-            </div>
-    
-            <!-- Additional Information -->
-            <div class="input-group">
-                <label>None time<input type="text" id="noneTime"></label>
-                <label>Move time<input type="text" id="moveTime"></label>
-                <h3>Worker</h3>
-                <div id="workerFields">
-                    <div class="field-container">
-                        <input type="text" name="worker[]" class="field-input">
-                        <select name="workerRole[]" class="worker-role-select">
-                            <option value="Main">Main</option>
-                            <option value="Support">Support</option>
-                        </select>
-                        <div class="add-remove-buttons">
-                            <button type="button" class="button addRow" data-field="worker">+</button>
-                        </div>
-                    </div>
-                </div>
-                <label>Title <input type="text" id="workTitle"></label>
-                <h3>Action</h3>
-                <div id="actionFields" class="input-group">
-                    <div class="field-container">
-                        <textarea name="action[]" class="field-input" rows="2"></textarea>
-                        <button type="button" id="actionAdd">+</button>
-                    </div>
-                </div>
-                <label>Status <input type="text" id="workStatus"></label>
-                <label>Cause <input type="text" id="workCause"></label>
-                <h3>Result</h3>
-                <div id="resultFields">
-                    <div class="field-container">
-                        <textarea name="result[]" class="field-input" rows="2"></textarea>
-                        <button type="button" id="resultAdd">+</button>
-                    </div>
-                </div>
-                <label>SOP
-                    <select id="sop">
-                        <option value="Not Utilized (No Need)">Not Utilized (No Need)</option>
-                        <option value="Utilized">Utilized</option>
-                        <option value="Utilized (Need Rev.)">Utlized (Need Rev.)</option>
-                        <option value="No document (Need)">No document (Need)</option>
-                    </select>
-                </label>
-                <label>T/S Guide
-                    <select id="tsGuide">
-                        <option value="Not Utilized (No Need)">Not Utilized (No Need)</option>
-                        <option value="Utilized">Utilized</option>
-                        <option value="Utilized (Need Rev.)">Utlized (Need Rev.)</option>
-                        <option value="No document (Need)">No document (Need)</option>
-                    </select>
-                </label>
-                <label>Rep part <input type="text" id="repPart"></label>
-                <label>Transfer Item
-                    <select id="transferItem">
-                        <option value="SELECT">SELECT</option>
-                    </select>
-                </label>
-            </div>
-        <button type="button" id="saveButton">Save</button>
-        <button type="button" id="printInformButton">Print Inform</button>
-        <button type="button" id="copyInformButton">COPY INFORM</button>           
-        <button type="button" id="resetButton">RESET</button>
+    <h1>작업 로그</h1>
+    <form id="logForm" onsubmit="event.preventDefault(); submitLog();">
+        <label for="task_name">작업명:</label>
+        <input type="text" id="task_name" name="task_name" required><br>
+        <label for="worker">작업자:</label>
+        <input type="text" id="worker" name="worker" required><br>
+        <label for="task_result">결과:</label>
+        <textarea id="task_result" name="task_result" required></textarea><br>
+        <label for="task_cause">원인:</label>
+        <textarea id="task_cause" name="task_cause" required></textarea><br>
+        <button type="submit">로그 제출</button>
     </form>
-    <div id="informContent" style="display:none; margin-top:20px;"></div>
-    </div>
-
-    <!-- History 저장 이력 확인 탭 컨텐츠 -->
-    <div id="HistoryLog" class="tabcontent">
-        <div>
-            <label>Start date
-                <input type="date" id="startDate">
-            </label>
-            <label>End date
-                <input type="date" id="endDate">
-            </label>
-        </div>
-        <label>Title
-            <input type="text" id="searchWorkTitle">
-        </label>
-        <label>Worker
-            <input type="text" id="searchWorker">
-        </label>
-        <button id="searchButton">Search</button>
-        <button id="resetSearchButton">Reset Search</button>
-        <button type="button" id="exportToExcelButton">Save to Excel(투입)</button>
-        <button id="saveToExcel2Button" type="button">Save to Excel(order)</button>
-        <button id="clearHistoryButton">Clear Work History</button>
-        <label>
-            <input type="checkbox" id="doNotAskCheckbox"> 삭제 재확인 문구 보지 않기
-        </label>
-        <div id="workLogDisplay"></div>
-    </div>
-
-    <script src="script.js"></script>
+    <h2>로그 목록</h2>
+    <div id="logs"></div>
 </body>
 </html>
